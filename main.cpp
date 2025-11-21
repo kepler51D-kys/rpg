@@ -6,8 +6,6 @@
 #include "voxel.hpp"
 #include "rlgl.h"
 
-#define u8 uint8_t
-
 class entity {
 public:
     Vector3 position;
@@ -17,13 +15,13 @@ public:
         position.x = 0;
         position.y = 0;
         position.z = 0;
-        height = 2;
+        height = 4;
         speed = Speed;
     }
 };
 
 int main(void) {
-    world mainWorld = world(3,128);
+    world mainWorld = world(3,32);
     
     Vector3 camOffset = {-8.125,15.625,8.125};
     const int screenWidth = 1280;
@@ -71,11 +69,10 @@ int main(void) {
         BeginDrawing();
             ClearBackground(RAYWHITE);
             BeginMode3D(camera);
-                DrawCube((Vector3){1,0,0}, 1, 1, 1, GREEN);
                 DrawCapsule(
                     player.position,
                     (Vector3){player.position.x,player.position.y+player.height,player.position.z},
-                    0.5,
+                    1,
                     10,
                     10,
                     GREEN

@@ -5,4 +5,4 @@ f3="voxel.cpp"
 f4="chunk.cpp"
 f5="renderer.cpp"
 
-clang -o game $f1 $f2 $f3 $f4 $f5 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+g++ -o game $f1 $f2 $f3 $f4 $f5 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11

@@ -1,8 +1,12 @@
 #include "voxel.hpp"
 #include "renderer.hpp"
 #include "vec.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <raylib.h>
+#include <vector>
+
+#define u8 uint8_t
 
 world::world(int dist, int size) {
     data = new chunk[size*size];
@@ -18,54 +22,64 @@ world::world(int dist, int size) {
 void world::renderChunk(int Cx, int Cy) {
     int index = Cx*worldSize+Cy;
     for (int i = 0; i < meshes[index].size(); i++) {
-        DrawTriangle3D(meshes[index][i][0], meshes[index][i][2], meshes[index][i][3], PURPLE);
-        DrawTriangle3D(meshes[index][i][0], meshes[index][i][1], meshes[index][i][3], PURPLE);
+        DrawTriangle3D(
+            meshes[index][i].data[0],
+            meshes[index][i].data[2],
+            meshes[index][i].data[3],
+            GREEN
+        );
+        DrawTriangle3D(
+            meshes[index][i].data[0],
+            meshes[index][i].data[3],
+            meshes[index][i].data[1],
+            PURPLE
+        );
     }
 }
-bool world::allNeighboursSolid(int Cx, int Cy, int x, int y, int z) {
-    int chunkX = Cx;
-    int chunkY = Cy;
-    int tX = x - 1;
-    int tY = y;
-    int tZ = z;
+// bool world::allNeighboursSolid(int Cx, int Cy, int x, int y, int z) {
+//     int chunkX = Cx;
+//     int chunkY = Cy;
+//     int tX = x - 1;
+//     int tY = y;
+//     int tZ = z;
     
-    if (tX < 0) {
-        tX += 16;
-        chunkX--;
-    }
-    if (chunkX < 0 || chunkX >= worldSize) {
-        return false;
-    }
-    if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
-        return false;
-    }
+//     if (tX < 0) {
+//         tX += 16;
+//         chunkX--;
+//     }
+//     if (chunkX < 0 || chunkX >= worldSize) {
+//         return false;
+//     }
+//     if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
+//         return false;
+//     }
     
-    if (y + 1 > 15) {
-        return false;
-    }
-    if (data[Cx * worldSize + Cy].data[x * 256 + (y + 1) * 16 + z] == 0) {
-        return false;
-    }
+//     if (y + 1 > 15) {
+//         return false;
+//     }
+//     if (data[Cx * worldSize + Cy].data[x * 256 + (y + 1) * 16 + z] == 0) {
+//         return false;
+//     }
 
-    chunkX = Cx;
-    chunkY = Cy;
-    tX = x;
-    tY = y;
-    tZ = z + 1;
+//     chunkX = Cx;
+//     chunkY = Cy;
+//     tX = x;
+//     tY = y;
+//     tZ = z + 1;
     
-    if (tZ > 15) {
-        tZ -= 16;
-        chunkY++;
-    }
-    if (chunkY < 0 || chunkY >= worldSize) {
-        return false;
-    }
-    if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
-        return false;
-    }
+//     if (tZ > 15) {
+//         tZ -= 16;
+//         chunkY++;
+//     }
+//     if (chunkY < 0 || chunkY >= worldSize) {
+//         return false;
+//     }
+//     if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
+//         return false;
+//     }
     
-    return true;
-}
+//     return true;
+// }
 bool world::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (y+1 > 15) {
         return false;
@@ -94,36 +108,36 @@ bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
 }
 void world::generateCache(int Cx, int Cy) {
     meshes[Cx*worldSize+Cy].clear();
+
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 if (data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0) {
-                    // printf("ee\n");
-                    Vector3 offset = {(float)Cx*16+x,(float)(-16+y),(float)Cy*16+z};
+                    Vector3 offset = {(float)(Cx-worldSize/2)*16+x,(float)(-16+y),(float)(Cy-worldSize/2)*16+z};
                     if (!topNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
-                            vec3_add(topQuad[0],offset),
-                            vec3_add(topQuad[1],offset),
-                            vec3_add(topQuad[2],offset),
-                            vec3_add(topQuad[3],offset),
+                            vec3_add(topQuad.data[0],offset),
+                            vec3_add(topQuad.data[1],offset),
+                            vec3_add(topQuad.data[2],offset),
+                            vec3_add(topQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
                     }
                     if (!leftNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
-                            vec3_add(leftQuad[0],offset),
-                            vec3_add(leftQuad[1],offset),
-                            vec3_add(leftQuad[2],offset),
-                            vec3_add(leftQuad[3],offset),
+                            vec3_add(leftQuad.data[0],offset),
+                            vec3_add(leftQuad.data[1],offset),
+                            vec3_add(leftQuad.data[2],offset),
+                            vec3_add(leftQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
                     }
                     if (!rightNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
-                            vec3_add(rightQuad[0],offset),
-                            vec3_add(rightQuad[1],offset),
-                            vec3_add(rightQuad[2],offset),
-                            vec3_add(rightQuad[3],offset),
+                            vec3_add(rightQuad.data[0],offset),
+                            vec3_add(rightQuad.data[1],offset),
+                            vec3_add(rightQuad.data[2],offset),
+                            vec3_add(rightQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
                     }
