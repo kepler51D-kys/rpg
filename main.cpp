@@ -29,7 +29,7 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "game");
 
     // printf("hellllll\n");
-    world mainWorld = world(3,24);
+    world mainWorld = world(4,16);
     // printf("hellllll\n");
 
 
@@ -63,6 +63,9 @@ int main(void) {
             movement.z += 1;
         }
         movement = normalised(movement);
+        if (IsKeyDown(KEY_SPACE)) {
+            movement = vec3_mult(movement,2);
+        }
         movement = vec3_mult(movement, player.speed);
         player.position = vec3_add(player.position, movement);
 
@@ -76,8 +79,8 @@ int main(void) {
                     player.position,
                     (Vector3){player.position.x,player.position.y+player.height,player.position.z},
                     1,
-                    10,
-                    10,
+                    6,
+                    6,
                     GREEN
                 );
                 mainWorld.render(player.position);

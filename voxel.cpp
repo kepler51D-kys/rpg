@@ -17,7 +17,7 @@ world::world(int dist, int size) {
     
     // printf("not gay\n");
 
-    texture = LoadTexture("forest.png");
+    texture = LoadTexture("gay.png");
     // printf("gay\n");
 
     for (int i = 0; i < worldSize; i++) {
@@ -36,8 +36,8 @@ void world::renderChunk(int Cx, int Cy) {
     // Texture coordinates
     Vector2 texCoords[4] = {
         { 0.0f, 0.0f },  // Top-left
-        { 1.0f, 0.0f },  // Top-right
-        { 1.0f, 1.0f },  // Bottom-right
+        { 0.25f, 0.0f },  // Top-right
+        { 0.25f, 1.0f },  // Bottom-right
         { 0.0f, 1.0f }   // Bottom-left
     };
     
@@ -78,32 +78,14 @@ void world::renderChunk(int Cx, int Cy) {
     rlEnd();
     rlSetTexture(0);
 }
-// void world::renderChunk(int Cx, int Cy) {
-    
-//     int index = Cx*worldSize+Cy;
-//     for (int i = 0; i < meshes[index].size(); i++) {
-//         DrawTriangle3D(
-//             meshes[index][i].data[0],
-//             meshes[index][i].data[2],
-//             meshes[index][i].data[3],
-//             GREEN
-//         );
-//         DrawTriangle3D(
-//             meshes[index][i].data[0],
-//             meshes[index][i].data[3],
-//             meshes[index][i].data[1],
-//             PURPLE
-//         );
-//     }
-// }
 bool world::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
-    if (y+1 > 15) {
+    if (++y >= 16) {
         return false;
     }
     return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
 }
 bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
-    if (x-1 < 0) {
+    if (--x < 0) {
         Cx--;
         x = 15;
     }
@@ -113,23 +95,28 @@ bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
 }
 bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
-    if (z+1 > 15) {
+    if (++z >= 16) {
         Cy++;
         z = 0;
     }
-    if (Cy > worldSize) {
+    if (Cy >= worldSize) {
         return false;
     }
     return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
 }
 void world::generateCache(int Cx, int Cy) {
     meshes[Cx*worldSize+Cy].clear();
-
+    Vector3 chunkOffset = {
+        (float)(Cx - worldSize/2) * 16,
+        -16.0f,
+        (float)(Cy - worldSize/2) * 16
+    };
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 if (data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0) {
-                    Vector3 offset = {(float)(Cx-worldSize/2)*16+x,(float)(-16+y),(float)(Cy-worldSize/2)*16+z};
+                    Vector3 offset = vec3_add(chunkOffset,Vector3((float)x,(float)y,(float)z));
+
                     if (!topNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
                             vec3_add(topQuad.data[0],offset),
@@ -140,6 +127,7 @@ void world::generateCache(int Cx, int Cy) {
                         meshes[Cx*worldSize+Cy].push_back(newquad);
                     }
                     if (!leftNeighbourSolid(Cx,Cy,x,y,z)) {
+                        // printf("gay\n");
                         quad newquad = {
                             vec3_add(leftQuad.data[0],offset),
                             vec3_add(leftQuad.data[1],offset),
