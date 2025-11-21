@@ -11,11 +11,13 @@ public:
 };
 class world {
 public:
+    Texture2D texture;
     chunk* data;
     std::vector<std::vector<quad>> meshes;
     int worldSize;
     int renderDistance;
     world(int dist, int size);
+    ~world();
     bool allNeighboursSolid(int Cx, int Cy, int x, int y, int z);
     void generateCache(int Cx, int Cy);
     void render(const Vector3& playerPos);

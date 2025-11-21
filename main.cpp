@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "vec.hpp"
+#include <cstdio>
 #include <stdint.h>
 // #include <vector>
 // #include "raymath.h"
@@ -21,23 +22,25 @@ public:
 };
 
 int main(void) {
-    world mainWorld = world(3,32);
-    
+
     Vector3 camOffset = {-8.125,15.625,8.125};
     const int screenWidth = 1280;
     const int screenHeight = 720;
-
     InitWindow(screenWidth, screenHeight, "game");
+
+    // printf("hellllll\n");
+    world mainWorld = world(3,24);
+    // printf("hellllll\n");
+
 
     Camera camera = { 0 };
     camera.position = camOffset;
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-    camera.fovy = 20.0f;
+    camera.fovy = 30.0f;
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
     entity player = entity(0.3);
-    chunk test = chunk();
     
     SetTargetFPS(60);
 

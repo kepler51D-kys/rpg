@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <raylib.h>
 #include <vector>
+#include "rlgl.h"
 
 #define u8 uint8_t
 
@@ -13,72 +14,87 @@ world::world(int dist, int size) {
     meshes.resize(size*size);
     worldSize = size;
     renderDistance = dist;
+    
+    // printf("not gay\n");
+
+    texture = LoadTexture("forest.png");
+    // printf("gay\n");
+
     for (int i = 0; i < worldSize; i++) {
         for (int j = 0; j < worldSize; j++) {
             generateCache(i, j);
         }
     }
-}
-void world::renderChunk(int Cx, int Cy) {
-    int index = Cx*worldSize+Cy;
-    for (int i = 0; i < meshes[index].size(); i++) {
-        DrawTriangle3D(
-            meshes[index][i].data[0],
-            meshes[index][i].data[2],
-            meshes[index][i].data[3],
-            GREEN
-        );
-        DrawTriangle3D(
-            meshes[index][i].data[0],
-            meshes[index][i].data[3],
-            meshes[index][i].data[1],
-            PURPLE
-        );
+    if (texture.id == 0) {
+        printf("you darn fudged it bruv\n");
     }
 }
-// bool world::allNeighboursSolid(int Cx, int Cy, int x, int y, int z) {
-//     int chunkX = Cx;
-//     int chunkY = Cy;
-//     int tX = x - 1;
-//     int tY = y;
-//     int tZ = z;
+world::~world() {
+    UnloadTexture(texture);
+}
+void world::renderChunk(int Cx, int Cy) {
+    // Texture coordinates
+    Vector2 texCoords[4] = {
+        { 0.0f, 0.0f },  // Top-left
+        { 1.0f, 0.0f },  // Top-right
+        { 1.0f, 1.0f },  // Bottom-right
+        { 0.0f, 1.0f }   // Bottom-left
+    };
     
-//     if (tX < 0) {
-//         tX += 16;
-//         chunkX--;
-//     }
-//     if (chunkX < 0 || chunkX >= worldSize) {
-//         return false;
-//     }
-//     if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
-//         return false;
-//     }
+    int index = Cx * worldSize + Cy;
     
-//     if (y + 1 > 15) {
-//         return false;
-//     }
-//     if (data[Cx * worldSize + Cy].data[x * 256 + (y + 1) * 16 + z] == 0) {
-//         return false;
-//     }
-
-//     chunkX = Cx;
-//     chunkY = Cy;
-//     tX = x;
-//     tY = y;
-//     tZ = z + 1;
+    // Early return if no meshes
+    if (index >= meshes.size() || meshes[index].empty()) {
+        return;
+    }
     
-//     if (tZ > 15) {
-//         tZ -= 16;
-//         chunkY++;
-//     }
-//     if (chunkY < 0 || chunkY >= worldSize) {
-//         return false;
-//     }
-//     if (data[chunkX * worldSize + chunkY].data[tX * 256 + tY * 16 + tZ] == 0) {
-//         return false;
-//     }
+    // Only set texture once for all quads in this chunk
+    rlSetTexture(texture.id);
+    rlBegin(RL_QUADS);
     
-//     return true;
+    for (int i = 0; i < meshes[index].size(); i++) {
+        quad newQuad = meshes[index][i];
+        
+        // Make sure your quad vertices are in counter-clockwise order for proper facing
+        rlColor4ub(255, 255, 255, 255);
+        
+        // Vertex 0: Bottom-left (adjust based on your coordinate system)
+        rlTexCoord2f(texCoords[0].x, texCoords[0].y);
+        rlVertex3f(newQuad.data[0].x, newQuad.data[0].y, newQuad.data[0].z);
+        
+        // Vertex 1: Bottom-right
+        rlTexCoord2f(texCoords[1].x, texCoords[1].y);
+        rlVertex3f(newQuad.data[1].x, newQuad.data[1].y, newQuad.data[1].z);
+        
+        // Vertex 2: Top-right
+        rlTexCoord2f(texCoords[2].x, texCoords[2].y);
+        rlVertex3f(newQuad.data[2].x, newQuad.data[2].y, newQuad.data[2].z);
+        
+        // Vertex 3: Top-left
+        rlTexCoord2f(texCoords[3].x, texCoords[3].y);
+        rlVertex3f(newQuad.data[3].x, newQuad.data[3].y, newQuad.data[3].z);
+    }
+    
+    rlEnd();
+    rlSetTexture(0);
+}
+// void world::renderChunk(int Cx, int Cy) {
+    
+//     int index = Cx*worldSize+Cy;
+//     for (int i = 0; i < meshes[index].size(); i++) {
+//         DrawTriangle3D(
+//             meshes[index][i].data[0],
+//             meshes[index][i].data[2],
+//             meshes[index][i].data[3],
+//             GREEN
+//         );
+//         DrawTriangle3D(
+//             meshes[index][i].data[0],
+//             meshes[index][i].data[3],
+//             meshes[index][i].data[1],
+//             PURPLE
+//         );
+//     }
 // }
 bool world::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (y+1 > 15) {

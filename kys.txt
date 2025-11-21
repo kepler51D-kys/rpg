@@ -1,0 +1,3 @@
+you darn fudged it bruv
+INFO: FILEIO: [forest.png] File loaded successfully
+INFO: IMAGE: Data loaded successfully (1920x1080 | R8G8B8 | 1 mipmaps)
