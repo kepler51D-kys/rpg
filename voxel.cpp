@@ -14,11 +14,8 @@ world::world(int dist, int size) {
     meshes.resize(size*size);
     worldSize = size;
     renderDistance = dist;
-    
-    // printf("not gay\n");
 
-    texture = LoadTexture("gay.png");
-    // printf("gay\n");
+    texture = LoadTexture("assets/textures.png");
 
     for (int i = 0; i < worldSize; i++) {
         for (int j = 0; j < worldSize; j++) {
@@ -32,45 +29,44 @@ world::world(int dist, int size) {
 world::~world() {
     UnloadTexture(texture);
 }
-void world::renderChunk(int Cx, int Cy) {
-    // Texture coordinates
-    Vector2 texCoords[4] = {
-        { 0.0f, 0.0f },  // Top-left
-        { 0.25f, 0.0f },  // Top-right
-        { 0.25f, 1.0f },  // Bottom-right
-        { 0.0f, 1.0f }   // Bottom-left
+atlasTexture world::getTexture(int index) {
+    return  (atlasTexture){
+        {{ 0.0f, 0.0f },
+        { (float)index/idAmounts, 0.0f },
+        { (float)index/idAmounts, 1.0f },
+        { 0.0f, 1.0f }}
     };
-    
+}
+void world::renderChunk(int Cx, int Cy) {
     int index = Cx * worldSize + Cy;
-    
-    // Early return if no meshes
+
     if (index >= meshes.size() || meshes[index].empty()) {
         return;
     }
     
-    // Only set texture once for all quads in this chunk
     rlSetTexture(texture.id);
     rlBegin(RL_QUADS);
     
     for (int i = 0; i < meshes[index].size(); i++) {
         quad newQuad = meshes[index][i];
+        Vector2 texCoords[4] = {
+            { 0.0f, 0.0f },
+            { 1.0/idAmounts, 0.0f },
+            { 1.0/idAmounts, 1.0f },
+            { 0.0f, 1.0f }
+        };
         
-        // Make sure your quad vertices are in counter-clockwise order for proper facing
         rlColor4ub(255, 255, 255, 255);
         
-        // Vertex 0: Bottom-left (adjust based on your coordinate system)
         rlTexCoord2f(texCoords[0].x, texCoords[0].y);
         rlVertex3f(newQuad.data[0].x, newQuad.data[0].y, newQuad.data[0].z);
         
-        // Vertex 1: Bottom-right
         rlTexCoord2f(texCoords[1].x, texCoords[1].y);
         rlVertex3f(newQuad.data[1].x, newQuad.data[1].y, newQuad.data[1].z);
         
-        // Vertex 2: Top-right
         rlTexCoord2f(texCoords[2].x, texCoords[2].y);
         rlVertex3f(newQuad.data[2].x, newQuad.data[2].y, newQuad.data[2].z);
         
-        // Vertex 3: Top-left
         rlTexCoord2f(texCoords[3].x, texCoords[3].y);
         rlVertex3f(newQuad.data[3].x, newQuad.data[3].y, newQuad.data[3].z);
     }

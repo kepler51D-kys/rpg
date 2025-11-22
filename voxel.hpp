@@ -25,4 +25,5 @@ public:
     bool leftNeighbourSolid(int Cx, int Cy, int x, int y, int z);
     bool rightNeighbourSolid(int Cx, int Cy, int x, int y, int z);
     void renderChunk(int Cx, int Cy);
+    atlasTexture getTexture(int index);
 };

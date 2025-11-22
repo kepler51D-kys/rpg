@@ -1,9 +1,6 @@
 #include "raylib.h"
 #include "vec.hpp"
-#include <cstdio>
 #include <stdint.h>
-// #include <vector>
-// #include "raymath.h"
 #include "voxel.hpp"
 #include "rlgl.h"
 
@@ -37,7 +34,7 @@ int main(void) {
     camera.position = camOffset;
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-    camera.fovy = 30.0f;
+    camera.fovy = 40.0f;
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
     entity player = entity(0.3);
