@@ -1,8 +1,8 @@
 #!/bin/bash
 f1="main.cpp"
 f2="vec.cpp"
-f3="voxel.cpp"
-f4="chunk.cpp"
-f5="renderer.cpp"
+f3="voxels/voxel.cpp"
+f4="voxels/chunk.cpp"
+f5="voxels/renderer.cpp"
 
 g++ -o game $f1 $f2 $f3 $f4 $f5 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11

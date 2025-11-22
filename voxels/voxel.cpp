@@ -1,6 +1,6 @@
 #include "voxel.hpp"
 #include "renderer.hpp"
-#include "vec.hpp"
+#include "../vec.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <raylib.h>
@@ -78,14 +78,14 @@ void world::renderChunk(int Cx, int Cy) {
 void world::generateCache(int Cx, int Cy) {
     meshes[Cx*worldSize+Cy].clear();
     Vector3 chunkOffset = {
-        (float)(Cx - (float)worldSize/2) * 16,
-        -16.0f,
-        (float)(Cy - (float)worldSize/2) * 16
+        (float)(Cx - (float)worldSize/2) * chunkSize,
+        -chunkSize,
+        (float)(Cy - (float)worldSize/2) * chunkSize
     };
-    for (int x = 0; x < 16; x++) {
-        for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-                if (data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0) {
+    for (int x = 0; x < chunkSize; x++) {
+        for (int y = 0; y < chunkSize; y++) {
+            for (int z = 0; z < chunkSize; z++) {
+                if (data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0) {
                     Vector3 offset = vec3_add(chunkOffset,Vector3((float)x,(float)y,(float)z));
 
                     if (!topNeighbourSolid(Cx,Cy,x,y,z)) {
@@ -96,7 +96,7 @@ void world::generateCache(int Cx, int Cy) {
                             vec3_add(topQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*16*16+y*16+z]-1);
+                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                     if (!leftNeighbourSolid(Cx,Cy,x,y,z)) {
                         // printf("gay\n");
@@ -107,7 +107,7 @@ void world::generateCache(int Cx, int Cy) {
                             vec3_add(leftQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*16*16+y*16+z]-1);
+                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                     if (!rightNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
@@ -117,7 +117,7 @@ void world::generateCache(int Cx, int Cy) {
                             vec3_add(rightQuad.data[3],offset),
                         };
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*16*16+y*16+z]-1);
+                        textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                 }
             }
@@ -125,12 +125,12 @@ void world::generateCache(int Cx, int Cy) {
     }
 }
 void world::render(const Vector3& playerPos) {
-    int playerChunkX = playerPos.x / 16;
-    int playerChunkZ = playerPos.z / 16;
+    int playerChunkX = playerPos.x / chunkSize;
+    int playerChunkZ = playerPos.z / chunkSize;
     for (int x = std::max(-worldSize/2,playerChunkX-renderDistance); x < std::min(worldSize/2,playerChunkX+renderDistance); x++) {
         for (int z = std::max(-worldSize/2,playerChunkZ-renderDistance); z < std::min(worldSize/2,playerChunkZ+renderDistance); z++) {
-            float chunkWorldX = x * 16;
-            float chunkWorldZ = z * 16;
+            float chunkWorldX = x * chunkSize;
+            float chunkWorldZ = z * chunkSize;
 
             float distX = std::abs(chunkWorldX - playerPos.x);
             float distZ = std::abs(chunkWorldZ - playerPos.z);
@@ -138,7 +138,7 @@ void world::render(const Vector3& playerPos) {
             int coordX = x + worldSize/2;
             int coordZ = z + worldSize/2;
             
-            if (distX <= renderDistance * 16 && distZ <= renderDistance * 16) {
+            if (distX <= renderDistance * chunkSize && distZ <= renderDistance * chunkSize) {
                 renderChunk(coordX,coordZ);
             }
         }
@@ -146,10 +146,10 @@ void world::render(const Vector3& playerPos) {
 }
 
 bool world::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
-    if (++y >= 16) {
+    if (++y >= chunkSize) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
+    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
 }
 bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (--x < 0) {
@@ -159,15 +159,15 @@ bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (Cx < 0) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
+    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
 }
 bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
-    if (++z >= 16) {
+    if (++z >= chunkSize) {
         Cy++;
         z = 0;
     }
     if (Cy >= worldSize) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*16*16+y*16+z] != 0;
+    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
 }

@@ -4,9 +4,11 @@
 #include <cstdint>
 #include <vector>
 
+const int chunkSize = 16;
+
 class chunk {
 public:
-    uint16_t data[16*16*16];
+    uint16_t data[chunkSize*chunkSize*chunkSize];
     chunk();
 };
 class world {
