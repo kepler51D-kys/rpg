@@ -14,6 +14,7 @@ public:
     Texture2D texture;
     chunk* data;
     std::vector<std::vector<quad>> meshes;
+    std::vector<std::vector<int>> textureIds;
     int worldSize;
     int renderDistance;
     world(int dist, int size);

@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-const int idAmounts = 1;
+const int idAmounts = 2;
 
 quad topQuad = {
     Vector3(0, 1, 1),
