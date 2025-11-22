@@ -51,8 +51,8 @@ void world::renderChunk(int Cx, int Cy) {
         quad newQuad = meshes[index][i];
         Vector2 texCoords[4] = {
             { 0.0f, 0.0f },
-            { 1.0/idAmounts, 0.0f },
-            { 1.0/idAmounts, 1.0f },
+            { 1.0f/idAmounts, 0.0f },
+            { 1.0f/idAmounts, 1.0f },
             { 0.0f, 1.0f }
         };
         
@@ -103,9 +103,9 @@ bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
 void world::generateCache(int Cx, int Cy) {
     meshes[Cx*worldSize+Cy].clear();
     Vector3 chunkOffset = {
-        (float)(Cx - worldSize/2) * 16,
+        (float)(Cx - (float)worldSize/2) * 16,
         -16.0f,
-        (float)(Cy - worldSize/2) * 16
+        (float)(Cy - (float)worldSize/2) * 16
     };
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 16; y++) {
