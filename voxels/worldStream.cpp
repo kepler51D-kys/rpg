@@ -1,43 +1,32 @@
 #include "voxel.hpp"
-#include "renderer.hpp"
-#include "../vec.hpp"
-#include <cstdio>
+#include <cstdint>
 #include <cstdlib>
-#include <raylib.h>
-#include <vector>
-#include "rlgl.h"
-
-#define u8 uint8_t
-
-world::world(int dist, int size) {
-    data = new chunk[size*size];
-    meshes.resize(size*size);
-    worldSize = size;
-    renderDistance = dist;
-
+#include <fstream>
+#include <rlgl.h>
+#include "../vec.hpp"
+worldStream::worldStream(int dist, int WorldSize) {
     texture = LoadTexture("assets/textures.png");
     if (texture.id == 0) {
-        printf("you darn fudged it bruv\n");
+        exit(-1);
     }
-    for (int i = 0; i < worldSize; i++) {
-        for (int j = 0; j < worldSize; j++) {
-            generateCache(i, j);
-        }
+    area.reserve(dist*dist*2);
+    
+    int len = WorldSize*WorldSize*chunkSize*chunkSize*chunkSize;
+    uint16_t map[len];
+    for (int i = 0; i < len; i++) {
+        map[i] = 1;
     }
+    std::fstream outputFile("worlds/testworld.world");
+    if (!outputFile.is_open()) {
+        exit(-1);
+    }
+    outputFile.write(reinterpret_cast<char*>(map), len);
 }
-world::~world() {
-    UnloadTexture(texture);
+void loadChunk() {
+
 }
-atlasTexture world::getTexture(int index) {
-    return  (atlasTexture){
-        {{ (float)(index-1)/idAmounts, 0.0f },
-            { (float)index/idAmounts, 0.0f },
-            { (float)index/idAmounts, 1.0f },
-            { (float)(index-1)/idAmounts, 1.0f }}
-    };
-}
-void world::renderChunk(int Cx, int Cy) {
-    int index = Cx * worldSize + Cy;
+void worldStream::renderChunk(int x, int y, int z) {
+    int index = x * worldSize + y;
 
     if (index >= meshes.size() || meshes[index].empty()) {
         return;
@@ -67,7 +56,8 @@ void world::renderChunk(int Cx, int Cy) {
     rlEnd();
     rlSetTexture(0);
 }
-void world::generateCache(int Cx, int Cy) {
+
+void worldStream::generateCache(int Cx, int Cy) {
     meshes[Cx*worldSize+Cy].clear();
     Vector3 chunkOffset = {
         (float)(Cx - (float)worldSize/2) * chunkSize,
@@ -77,7 +67,7 @@ void world::generateCache(int Cx, int Cy) {
     for (int x = 0; x < chunkSize; x++) {
         for (int y = 0; y < chunkSize; y++) {
             for (int z = 0; z < chunkSize; z++) {
-                if (data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0) {
+                if (area[v3(Cx,0, Cy)][x*chunkSize*chunkSize+y*chunkSize+z] != 0) {
                     Vector3 offset = vec3_add(chunkOffset,Vector3((float)x,(float)y,(float)z));
 
                     if (!topNeighbourSolid(Cx,Cy,x,y,z)) {
@@ -87,21 +77,18 @@ void world::generateCache(int Cx, int Cy) {
                             vec3_add(topQuad.data[2],offset),
                             vec3_add(topQuad.data[3],offset),
                         };
-                        newquad.textureId = data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1;
+                        newquad.textureId = area[v3(Cx,0, Cy)][x*chunkSize*chunkSize+y*chunkSize+z]-1;
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        // textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                     if (!leftNeighbourSolid(Cx,Cy,x,y,z)) {
-                        // printf("gay\n");
                         quad newquad = {
                             vec3_add(leftQuad.data[0],offset),
                             vec3_add(leftQuad.data[1],offset),
                             vec3_add(leftQuad.data[2],offset),
                             vec3_add(leftQuad.data[3],offset),
                         };
-                        newquad.textureId = data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1;
+                        newquad.textureId = area[v3(Cx,0, Cy)][x*chunkSize*chunkSize+y*chunkSize+z]-1;
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        // textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                     if (!rightNeighbourSolid(Cx,Cy,x,y,z)) {
                         quad newquad = {
@@ -110,43 +97,25 @@ void world::generateCache(int Cx, int Cy) {
                             vec3_add(rightQuad.data[2],offset),
                             vec3_add(rightQuad.data[3],offset),
                         };
-                        newquad.textureId = data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1;
+                        newquad.textureId = area[v3(Cx,0, Cy)][x*chunkSize*chunkSize+y*chunkSize+z]-1;
                         meshes[Cx*worldSize+Cy].push_back(newquad);
-                        // textureIds[Cx*worldSize+Cy].push_back(data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z]-1);
                     }
                 }
             }
         }
     }
 }
-void world::render(const Vector3& playerPos) {
-    int playerChunkX = playerPos.x / chunkSize;
-    int playerChunkZ = playerPos.z / chunkSize;
-    for (int x = std::max(-worldSize/2,playerChunkX-renderDistance); x < std::min(worldSize/2,playerChunkX+renderDistance); x++) {
-        for (int z = std::max(-worldSize/2,playerChunkZ-renderDistance); z < std::min(worldSize/2,playerChunkZ+renderDistance); z++) {
-            float chunkWorldX = x * chunkSize;
-            float chunkWorldZ = z * chunkSize;
-
-            float distX = std::abs(chunkWorldX - playerPos.x);
-            float distZ = std::abs(chunkWorldZ - playerPos.z);
-            
-            int coordX = x + worldSize/2;
-            int coordZ = z + worldSize/2;
-            
-            if (distX <= renderDistance * chunkSize && distZ <= renderDistance * chunkSize) {
-                renderChunk(coordX,coordZ);
-            }
-        }
-    }
+int worldStream::chunkIndex(int x, int y, int z) {
+    return x*worldSize*worldSize+y*worldSize+z;
 }
 
-bool world::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
+bool worldStream::topNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (++y >= chunkSize) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
+    return area[v3(Cx,0, Cy)][chunkIndex(x, y, z)];
 }
-bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
+bool worldStream::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (--x < 0) {
         Cx--;
         x = 15;
@@ -154,9 +123,9 @@ bool world::leftNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (Cx < 0) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
+    return area[v3(Cx,0, Cy)][chunkIndex(x, y, z)];
 }
-bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
+bool worldStream::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (++z >= chunkSize) {
         Cy++;
         z = 0;
@@ -164,5 +133,5 @@ bool world::rightNeighbourSolid(int Cx, int Cy, int x, int y, int z) {
     if (Cy >= worldSize) {
         return false;
     }
-    return data[Cx*worldSize+Cy].data[x*chunkSize*chunkSize+y*chunkSize+z] != 0;
+    return area[v3(Cx,0, Cy)][chunkIndex(x, y, z)];
 }

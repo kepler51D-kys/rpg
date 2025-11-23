@@ -4,5 +4,6 @@ f2="vec.cpp"
 f3="voxels/voxel.cpp"
 f4="voxels/chunk.cpp"
 f5="voxels/renderer.cpp"
+f6="voxels/worldStream.cpp"
 
-g++ -o game $f1 $f2 $f3 $f4 $f5 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+g++ -o game $f1 $f2 $f3 $f4 $f5 $f6 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11

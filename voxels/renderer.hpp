@@ -7,6 +7,7 @@ extern const int idAmounts;
 
 typedef struct {
     Vector3 data[4];
+    int textureId;
 } quad;
 
 typedef struct {

@@ -13,7 +13,8 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "game");
 
     // printf("hellllll\n");
-    world mainWorld = world(4,16);
+    // world mainWorld = world(4,16);
+    worldStream mainWorld = worldStream(4,16);
     // printf("hellllll\n");
 
 
@@ -30,6 +31,12 @@ int main(void) {
 
     while (!WindowShouldClose()) {
         Vector3 movement = {0,0,0};
+        if (IsKeyDown(KEY_E)) {
+            camera.fovy -= 5;
+        }
+        if (IsKeyDown(KEY_Q)) {
+            camera.fovy += 5;
+        }
         if (IsKeyDown(KEY_W)) {
             movement.z -= 1;
             movement.x += 1;
